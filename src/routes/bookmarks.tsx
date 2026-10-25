@@ -38,7 +38,7 @@ function BookmarksPage() {
       {notes.length === 0 ? <p className="text-sm text-muted-foreground">Tap a verse while reading and open “My Note” to add one.</p> : (
         <div className="space-y-2">
           {notes.map((n) => {
-            const [book, ch, v] = n.key.split(":");
+            const [book = "", ch = "1", v = "1"] = n.key.split(":");
             return (
               <div key={n.key} className={cn("flex items-start gap-3 rounded-xl border bg-card p-4", n.color && HL_CLASS[n.color])}>
                 <Link to="/read/$book/$chapter" params={{ book, chapter: ch }} hash={`v${v}`} className="flex-1">

@@ -84,7 +84,7 @@ function Reader() {
           <p className="font-display text-xl">{book.name} {chapter} is being prepared</p>
           <p className="mt-2 text-sm text-muted-foreground">Full text in this preview: Genesis 1, John 1 and 1 Enoch 1.</p>
           <div className="mt-4 flex justify-center gap-2">
-            {[["genesis", "Genesis 1"], ["john", "John 1"], ["1-enoch", "1 Enoch 1"]].map(([b, l]) => (
+            {([["genesis", "Genesis 1"], ["john", "John 1"], ["1-enoch", "1 Enoch 1"]] as const).map(([b, l]) => (
               <Link key={b} to="/read/$book/$chapter" params={{ book: b, chapter: "1" }} className="rounded-full bg-secondary px-3 py-1.5 text-sm hover:bg-muted">{l}</Link>
             ))}
           </div>

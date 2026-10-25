@@ -17,13 +17,13 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const john = CHAPTERS[1];
+  const john = CHAPTERS[1]!;
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 md:px-8">
       <section className="bg-hero rounded-3xl border p-7 shadow-soft md:p-12">
         <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Verse of the day</p>
         <blockquote className="mt-4 font-reading text-2xl leading-snug md:text-3xl">
-          “{segmentsToText(john.verses[0].text)}”
+          “{segmentsToText(john.verses[0]!.text)}”
         </blockquote>
         <p className="mt-3 text-sm font-semibold text-primary">John 1:1</p>
         <h1 className="mt-10 text-4xl font-semibold tracking-tight md:text-6xl">Chikuni Study Bible</h1>

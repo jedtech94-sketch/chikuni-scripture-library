@@ -13,8 +13,8 @@ const FILTERS: { id: SearchFilter; label: string }[] = [
 
 export const Route = createFileRoute("/search")({
   validateSearch: (s: Record<string, unknown>) => ({
-    q: typeof s.q === "string" ? s.q : "",
-    f: (FILTERS.some((x) => x.id === s.f) ? s.f : "all") as SearchFilter,
+    q: typeof s["q"] === "string" ? s["q"] : "",
+    f: (FILTERS.some((x) => x.id === s["f"]) ? s["f"] : "all") as SearchFilter,
   }),
   head: () => ({
     meta: [
