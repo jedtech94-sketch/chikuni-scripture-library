@@ -12,7 +12,7 @@ const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).p
 export function AudioBar() {
   const audio = useAppState((s) => s.audio);
   const navigate = useNavigate();
-  const chapter = CHAPTERS.find((c) => c.book === audio.book && c.chapter === audio.chapter) ?? CHAPTERS[0];
+  const chapter = CHAPTERS.find((c) => c.book === audio.book && c.chapter === audio.chapter) ?? CHAPTERS[0]!;
   const duration = useMemo(
     () => Math.round(chapter.verses.reduce((n, v) => n + segmentsToText(v.text).split(" ").length, 0) / 2.6),
     [chapter],
@@ -44,7 +44,7 @@ export function AudioBar() {
         <Select
           value={`${chapter.book}|${chapter.chapter}`}
           onValueChange={(v) => {
-            const [b, c] = v.split("|");
+            const [b = "genesis", c = "1"] = v.split("|");
             setAudio({ book: b, chapter: Number(c), pos: 0 });
             navigate({ to: "/read/$book/$chapter", params: { book: b, chapter: c } });
           }}
@@ -72,7 +72,7 @@ export function AudioBar() {
         <span className="hidden w-20 text-right text-xs tabular-nums text-muted-foreground sm:block">{fmt(audio.pos)} / {fmt(duration)}</span>
         <button
           aria-label="Playback speed"
-          onClick={() => setAudio({ speed: SPEEDS[(SPEEDS.indexOf(audio.speed) + 1) % SPEEDS.length] })}
+          onClick={() => setAudio({ speed: SPEEDS[(SPEEDS.indexOf(audio.speed) + 1) % SPEEDS.length] ?? 1 })}
           className="w-12 shrink-0 rounded-full border px-2 py-1 text-xs font-semibold tabular-nums hover:bg-muted"
         >
           {audio.speed}x

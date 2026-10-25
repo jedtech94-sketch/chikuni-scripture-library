@@ -2,7 +2,7 @@ import { useSyncExternalStore } from "react";
 
 export type FontSize = "sm" | "md" | "lg" | "xl";
 export type HighlightColor = "gold" | "rose" | "sage" | "sky";
-export type VerseNote = { key: string; label: string; color?: HighlightColor; note?: string; updated: number };
+export type VerseNote = { key: string; label: string; color?: HighlightColor | undefined; note?: string | undefined; updated: number };
 
 export type AppState = {
   theme: "light" | "dark";

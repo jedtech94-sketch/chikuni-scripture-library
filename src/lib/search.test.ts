@@ -11,7 +11,7 @@ describe("search", () => {
     expect(hits.every((h) => h.title.startsWith("Genesis"))).toBe(true);
   });
   it("Ethiopian filter finds 1 Enoch", () => {
-    expect(search("ten thousands", "eth")[0].title).toBe("1 Enoch 1:9");
+    expect(search("ten thousands", "eth")[0]?.title).toBe("1 Enoch 1:9");
   });
   it("highlights matches case-insensitively", () => {
     expect(highlightParts("The Word was God", "word").filter((p) => p.hit)).toHaveLength(1);
