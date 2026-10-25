@@ -11,6 +11,11 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import { AppHeader } from "@/components/AppHeader";
+import { AppNav } from "@/components/AppNav";
+import { AudioBar } from "@/components/AudioBar";
+import { Toaster } from "@/components/ui/sonner";
+import { useAppState } from "@/lib/store";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
@@ -78,11 +83,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Chikuni Study Bible" },
+      { name: "description", content: "Read and study the Bible, Ethiopian canon and historical books with commentary, cross-references and sermons." },
+      { property: "og:title", content: "Chikuni Study Bible" },
+      { property: "og:description", content: "Scripture, commentary, cross-references and the Great Library of ministers." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
@@ -92,6 +96,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Literata:ital,opsz,wght@0,7..72,400..600;1,7..72,400&family=Manrope:wght@400..700&display=swap" },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
@@ -117,11 +124,27 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const theme = useAppState((s) => s.theme);
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  }, [theme]);
 
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <div className="min-h-screen">
+        <aside className="fixed inset-y-0 left-0 hidden w-72 border-r bg-sidebar lg:block">
+          <AppNav />
+        </aside>
+        <div className="lg:pl-72">
+          <AppHeader />
+          <main className="pb-28">
+            <Outlet />
+          </main>
+        </div>
+        <AudioBar />
+      </div>
+      <Toaster position="top-center" />
     </QueryClientProvider>
   );
 }
