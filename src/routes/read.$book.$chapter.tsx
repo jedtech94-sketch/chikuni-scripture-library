@@ -77,7 +77,15 @@ function Reader() {
           <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">{GROUP_LABEL[book.group]}</p>
           <h1 className="mt-1 text-4xl font-semibold md:text-5xl">{book.name} <span className="text-primary">{chapter}</span></h1>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex flex-wrap items-center gap-1">
+          {hasRemoteText(book) && (
+            <Select value={translation} onValueChange={(v) => setState(() => ({ translation: v as TranslationId }))}>
+              <SelectTrigger className="h-9 w-[92px] rounded-full" aria-label="Translation"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {TRANSLATIONS.map((t) => <SelectItem key={t.id} value={t.id}>{t.short} · {t.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
           <ToggleGroup type="single" value={fontSize} onValueChange={(v) => v && setState(() => ({ fontSize: v as FontSize }))} className="rounded-full border p-0.5" aria-label="Font size">
             {(["sm", "md", "lg", "xl"] as FontSize[]).map((s, i) => (
               <ToggleGroupItem key={s} value={s} aria-label={["Small", "Medium", "Large", "Extra large"][i]} className="h-8 w-8 rounded-full font-reading data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
@@ -94,7 +102,7 @@ function Reader() {
       {!data ? (
         <div className="rounded-2xl border border-dashed p-10 text-center">
           <p className="font-display text-xl">{book.name} {chapter} is being prepared</p>
-          <p className="mt-2 text-sm text-muted-foreground">Full text in this preview: Genesis 1, John 1 and 1 Enoch 1.</p>
+          <p className="mt-2 text-sm text-muted-foreground">{hasRemoteText(book) ? "The text couldn't be loaded. Check your connection and try again." : "This book's text hasn't been added yet. 1 Enoch 1 is available now."}</p>
           <div className="mt-4 flex justify-center gap-2">
             {([["genesis", "Genesis 1"], ["john", "John 1"], ["1-enoch", "1 Enoch 1"]] as const).map(([b, l]) => (
               <Link key={b} to="/read/$book/$chapter" params={{ book: b, chapter: "1" }} className="rounded-full bg-secondary px-3 py-1.5 text-sm hover:bg-muted">{l}</Link>
@@ -104,7 +112,8 @@ function Reader() {
       ) : (
         <>
           {data.intro && <p className="mb-8 border-l-2 border-accent pl-4 text-sm italic text-muted-foreground">{data.intro}</p>}
-          <div className={cn("font-reading transition-all", SIZE[fontSize])}>
+          {data.source === "api" && <p className="mb-6 text-xs uppercase tracking-wider text-muted-foreground">{TRANSLATIONS.find((t) => t.id === translation)?.name} · public domain</p>}
+          <div className={cn("font-reading transition-all", SIZE[fontSize], loading && "opacity-50")}>
             {data.verses.map((v) => {
               const n = notes[verseKey(book.slug, chapter, v.n)];
               return (
