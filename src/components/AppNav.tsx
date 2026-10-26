@@ -48,7 +48,7 @@ export function AppNav({ onNavigate }: { onNavigate?: () => void }) {
       <Link to="/bookmarks" onClick={onNavigate} className="rounded-md px-2 py-2.5 hover:bg-sidebar-accent" activeProps={{ className: "bg-sidebar-accent font-medium" }}>
         🔖 Bookmarks & Notes
       </Link>
-      <p className="mt-auto px-2 pt-6 text-xs text-muted-foreground"><span className="text-primary">•</span> Full text available in preview</p>
+      <p className="mt-auto px-2 pt-6 text-xs text-muted-foreground"><span className="text-primary">•</span> Study edition with commentary · all Old & New Testament books in KJV</p>
     </nav>
   );
 }

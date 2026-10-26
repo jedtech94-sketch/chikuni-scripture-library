@@ -7,12 +7,15 @@ import { getBook, getChapter, GROUP_LABEL, type Verse } from "@/data/bible";
 import { setAudio, setState, useAppState, verseKey, type FontSize } from "@/lib/store";
 import { HL_CLASS, VerseDrawer } from "@/components/VerseDrawer";
 import { cn } from "@/lib/utils";
+import { fetchKjvChapter } from "@/lib/kjv";
 
 export const Route = createFileRoute("/read/$book/$chapter")({
-  loader: ({ params }) => {
+  loader: async ({ params }) => {
     const book = getBook(params.book);
     if (!book) throw notFound();
-    return { book, chapter: Number(params.chapter) || 1 };
+    const chapter = Number(params.chapter) || 1;
+    const remote = getChapter(book.slug, chapter) ? null : await fetchKjvChapter(book, chapter);
+    return { book, chapter, remote };
   },
   head: ({ loaderData }) => {
     const t = loaderData ? `${loaderData.book.name} ${loaderData.chapter} — Chikuni Study Bible` : "Chikuni Study Bible";
@@ -38,8 +41,8 @@ const SIZE: Record<FontSize, string> = {
 };
 
 function Reader() {
-  const { book, chapter } = Route.useLoaderData();
-  const data = getChapter(book.slug, chapter);
+  const { book, chapter, remote } = Route.useLoaderData();
+  const data = getChapter(book.slug, chapter) ?? (remote ? { book: book.slug, chapter, intro: "King James Version (public domain).", verses: remote } : undefined);
   const fontSize = useAppState((s) => s.fontSize);
   const notes = useAppState((s) => s.notes);
   const bookmarks = useAppState((s) => s.bookmarks);
