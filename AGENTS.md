@@ -8,3 +8,8 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+## Project rules
+- Scripture, cross-refs, commentary and library content live as typed mock data in `src/data/`; search reads only from there (`src/lib/search.ts`), so new content becomes searchable automatically.
+- User state (theme, font size, notes, highlights, bookmarks, audio position) lives in the localStorage store `src/lib/store.ts`; selectors must return existing slices, never new objects (useSyncExternalStore).
+- Audio bar is a simulated narration timeline until real recordings exist.
