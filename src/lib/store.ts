@@ -7,6 +7,7 @@ export type VerseNote = { key: string; label: string; color?: HighlightColor | u
 export type AppState = {
   theme: "light" | "dark";
   fontSize: FontSize;
+  translation: "kjv" | "web" | "asv" | "bbe" | "ylt" | "darby";
   notes: Record<string, VerseNote>;
   bookmarks: { key: string; label: string; book: string; chapter: number }[];
   audio: { book: string; chapter: number; playing: boolean; pos: number; speed: number };
@@ -15,6 +16,7 @@ export type AppState = {
 const DEFAULT: AppState = {
   theme: "light",
   fontSize: "md",
+  translation: "kjv",
   notes: {},
   bookmarks: [],
   audio: { book: "genesis", chapter: 1, playing: false, pos: 0, speed: 1 },

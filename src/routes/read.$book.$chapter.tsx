@@ -3,19 +3,19 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Bookmark, BookmarkCheck, ChevronLeft, ChevronRight, Headphones } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Button } from "@/components/ui/button";
-import { getBook, getChapter, GROUP_LABEL, type Verse } from "@/data/bible";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { GROUP_LABEL, type Verse } from "@/data/bible";
+import { getBook, hasRemoteText, loadChapter, TRANSLATIONS, type TranslationId } from "@/data/bibleDatabase";
 import { setAudio, setState, useAppState, verseKey, type FontSize } from "@/lib/store";
 import { HL_CLASS, VerseDrawer } from "@/components/VerseDrawer";
 import { cn } from "@/lib/utils";
-import { fetchKjvChapter } from "@/lib/kjv";
 
 export const Route = createFileRoute("/read/$book/$chapter")({
   loader: async ({ params }) => {
     const book = getBook(params.book);
     if (!book) throw notFound();
     const chapter = Number(params.chapter) || 1;
-    const remote = getChapter(book.slug, chapter) ? null : await fetchKjvChapter(book, chapter);
-    return { book, chapter, remote };
+    return { book, chapter, initial: await loadChapter(book, chapter, "kjv") };
   },
   head: ({ loaderData }) => {
     const t = loaderData ? `${loaderData.book.name} ${loaderData.chapter} — Chikuni Study Bible` : "Chikuni Study Bible";
@@ -41,8 +41,17 @@ const SIZE: Record<FontSize, string> = {
 };
 
 function Reader() {
-  const { book, chapter, remote } = Route.useLoaderData();
-  const data = getChapter(book.slug, chapter) ?? (remote ? { book: book.slug, chapter, intro: "King James Version (public domain).", verses: remote } : undefined);
+  const { book, chapter, initial } = Route.useLoaderData();
+  const translation = useAppState((s) => s.translation);
+  const [data, setData] = useState(initial);
+  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    if (translation === "kjv") { setData(initial); return; }
+    let live = true;
+    setLoading(true);
+    loadChapter(book, chapter, translation).then((d) => { if (live) { setData(d ?? initial); setLoading(false); } });
+    return () => { live = false; };
+  }, [book, chapter, translation, initial]);
   const fontSize = useAppState((s) => s.fontSize);
   const notes = useAppState((s) => s.notes);
   const bookmarks = useAppState((s) => s.bookmarks);
