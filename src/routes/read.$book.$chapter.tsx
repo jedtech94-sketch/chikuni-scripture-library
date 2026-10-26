@@ -104,7 +104,7 @@ function Reader() {
                     tabIndex={0}
                     onClick={() => setActive(v)}
                     onKeyDown={(e) => e.key === "Enter" && setActive(v)}
-                    className={cn("cursor-pointer rounded px-0.5 transition-colors hover:bg-muted", n?.color && HL_CLASS[n.color])}
+                    className={cn("cursor-pointer rounded px-0.5 outline-none transition-colors hover:bg-muted focus-visible:bg-muted", n?.color && HL_CLASS[n.color])}
                   >
                     <sup className="mr-1 font-sans text-[0.65em] font-bold text-primary">{v.n}</sup>
                     {v.text.map((seg, i) => typeof seg === "string" ? <span key={i}>{seg}</span> : <span key={i} className="text-red-600 dark:text-red-400">{seg.red}</span>)}
