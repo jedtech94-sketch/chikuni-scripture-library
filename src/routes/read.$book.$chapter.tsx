@@ -3,19 +3,19 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Bookmark, BookmarkCheck, ChevronLeft, ChevronRight, Headphones } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Button } from "@/components/ui/button";
-import { getBook, getChapter, GROUP_LABEL, type Verse } from "@/data/bible";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { GROUP_LABEL, type Verse } from "@/data/bible";
+import { getBook, hasRemoteText, loadChapter, TRANSLATIONS, type TranslationId } from "@/data/bibleDatabase";
 import { setAudio, setState, useAppState, verseKey, type FontSize } from "@/lib/store";
 import { HL_CLASS, VerseDrawer } from "@/components/VerseDrawer";
 import { cn } from "@/lib/utils";
-import { fetchKjvChapter } from "@/lib/kjv";
 
 export const Route = createFileRoute("/read/$book/$chapter")({
   loader: async ({ params }) => {
     const book = getBook(params.book);
     if (!book) throw notFound();
     const chapter = Number(params.chapter) || 1;
-    const remote = getChapter(book.slug, chapter) ? null : await fetchKjvChapter(book, chapter);
-    return { book, chapter, remote };
+    return { book, chapter, initial: await loadChapter(book, chapter, "kjv") };
   },
   head: ({ loaderData }) => {
     const t = loaderData ? `${loaderData.book.name} ${loaderData.chapter} — Chikuni Study Bible` : "Chikuni Study Bible";
@@ -41,8 +41,17 @@ const SIZE: Record<FontSize, string> = {
 };
 
 function Reader() {
-  const { book, chapter, remote } = Route.useLoaderData();
-  const data = getChapter(book.slug, chapter) ?? (remote ? { book: book.slug, chapter, intro: "King James Version (public domain).", verses: remote } : undefined);
+  const { book, chapter, initial } = Route.useLoaderData();
+  const translation = useAppState((s) => s.translation);
+  const [data, setData] = useState(initial);
+  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    if (translation === "kjv") { setData(initial); return; }
+    let live = true;
+    setLoading(true);
+    loadChapter(book, chapter, translation).then((d) => { if (live) { setData(d ?? initial); setLoading(false); } });
+    return () => { live = false; };
+  }, [book, chapter, translation, initial]);
   const fontSize = useAppState((s) => s.fontSize);
   const notes = useAppState((s) => s.notes);
   const bookmarks = useAppState((s) => s.bookmarks);
@@ -68,7 +77,15 @@ function Reader() {
           <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">{GROUP_LABEL[book.group]}</p>
           <h1 className="mt-1 text-4xl font-semibold md:text-5xl">{book.name} <span className="text-primary">{chapter}</span></h1>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex flex-wrap items-center gap-1">
+          {hasRemoteText(book) && (
+            <Select value={translation} onValueChange={(v) => setState(() => ({ translation: v as TranslationId }))}>
+              <SelectTrigger className="h-9 w-[92px] rounded-full" aria-label="Translation"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {TRANSLATIONS.map((t) => <SelectItem key={t.id} value={t.id}>{t.short} · {t.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
           <ToggleGroup type="single" value={fontSize} onValueChange={(v) => v && setState(() => ({ fontSize: v as FontSize }))} className="rounded-full border p-0.5" aria-label="Font size">
             {(["sm", "md", "lg", "xl"] as FontSize[]).map((s, i) => (
               <ToggleGroupItem key={s} value={s} aria-label={["Small", "Medium", "Large", "Extra large"][i]} className="h-8 w-8 rounded-full font-reading data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
@@ -85,7 +102,7 @@ function Reader() {
       {!data ? (
         <div className="rounded-2xl border border-dashed p-10 text-center">
           <p className="font-display text-xl">{book.name} {chapter} is being prepared</p>
-          <p className="mt-2 text-sm text-muted-foreground">Full text in this preview: Genesis 1, John 1 and 1 Enoch 1.</p>
+          <p className="mt-2 text-sm text-muted-foreground">{hasRemoteText(book) ? "The text couldn't be loaded. Check your connection and try again." : "This book's text hasn't been added yet. 1 Enoch 1 is available now."}</p>
           <div className="mt-4 flex justify-center gap-2">
             {([["genesis", "Genesis 1"], ["john", "John 1"], ["1-enoch", "1 Enoch 1"]] as const).map(([b, l]) => (
               <Link key={b} to="/read/$book/$chapter" params={{ book: b, chapter: "1" }} className="rounded-full bg-secondary px-3 py-1.5 text-sm hover:bg-muted">{l}</Link>
@@ -95,7 +112,8 @@ function Reader() {
       ) : (
         <>
           {data.intro && <p className="mb-8 border-l-2 border-accent pl-4 text-sm italic text-muted-foreground">{data.intro}</p>}
-          <div className={cn("font-reading transition-all", SIZE[fontSize])}>
+          {data.source === "api" && <p className="mb-6 text-xs uppercase tracking-wider text-muted-foreground">{TRANSLATIONS.find((t) => t.id === translation)?.name} · public domain</p>}
+          <div className={cn("font-reading transition-all", SIZE[fontSize], loading && "opacity-50")}>
             {data.verses.map((v) => {
               const n = notes[verseKey(book.slug, chapter, v.n)];
               return (
