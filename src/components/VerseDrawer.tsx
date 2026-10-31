@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { getBook, segmentsToText, type Verse } from "@/data/bible";
+import { compareVerse } from "@/data/bibleDatabase";
 import { setState, useAppState, verseKey, type HighlightColor } from "@/lib/store";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,14 @@ export function VerseDrawer({ book, chapter, verse, onClose }: { book: string; c
   }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const b = getBook(book);
+  const [compare, setCompare] = useState<Awaited<ReturnType<typeof compareVerse>> | null>(null);
+  useEffect(() => {
+    setCompare(null);
+    if (!verse || !b) return;
+    let live = true;
+    compareVerse(b, chapter, verse.n).then((r) => live && setCompare(r));
+    return () => { live = false; };
+  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
   const label = verse ? `${b?.name} ${chapter}:${verse.n}` : "";
 
   const save = () => {
@@ -51,11 +60,22 @@ export function VerseDrawer({ book, chapter, verse, onClose }: { book: string; c
               <DrawerDescription className="font-reading text-base leading-relaxed text-foreground/80">{segmentsToText(verse.text)}</DrawerDescription>
             </DrawerHeader>
             <Tabs defaultValue="refs">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="refs">Cross-Refs</TabsTrigger>
-                <TabsTrigger value="comm">Commentary</TabsTrigger>
-                <TabsTrigger value="note">My Note</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="refs">Refs</TabsTrigger>
+                <TabsTrigger value="cmp">Compare</TabsTrigger>
+                <TabsTrigger value="comm">Notes</TabsTrigger>
+                <TabsTrigger value="note">Mine</TabsTrigger>
               </TabsList>
+              <TabsContent value="cmp" className="space-y-2 pt-2">
+                {compare === null ? <p className="py-6 text-center text-sm text-muted-foreground">Loading translations…</p>
+                  : compare.every((c) => !c.text) ? <p className="py-6 text-center text-sm text-muted-foreground">Other translations aren't available for this book yet.</p>
+                  : compare.filter((c) => c.text).map((c) => (
+                    <div key={c.id} className="rounded-lg border bg-card p-3">
+                      <div className="text-xs font-semibold uppercase tracking-wider text-primary">{c.short} <span className="font-normal normal-case text-muted-foreground">· {c.name}</span></div>
+                      <p className="font-reading text-sm leading-relaxed">{c.text}</p>
+                    </div>
+                  ))}
+              </TabsContent>
               <TabsContent value="refs" className="space-y-2 pt-2">
                 {verse.refs?.length ? verse.refs.map((r) => (
                   <Link key={r.label} to="/read/$book/$chapter" params={{ book: r.book, chapter: String(r.chapter) }} hash={`v${r.verse}`} onClick={onClose} className="block rounded-lg border bg-card p-3 transition hover:border-primary">
