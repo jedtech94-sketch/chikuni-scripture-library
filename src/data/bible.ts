@@ -30,14 +30,13 @@ export const NEW_TESTAMENT = mk("nt", [
 ]);
 
 export const ETHIOPIAN = mk("eth", [
-  ["1 Enoch", 108], ["Jubilees", 50], ["1 Meqabyan", 36], ["2 Meqabyan", 21], ["3 Meqabyan", 10],
-  ["4 Baruch", 9], ["Sirach", 51], ["Tobit", 14], ["Judith", 16], ["Wisdom of Solomon", 19],
-  ["Josippon", 8],
+  ["1 Enoch", 108], ["Jubilees", 50], ["1 Meqabyan", 36], ["2 Meqabyan", 14], ["3 Meqabyan", 20],
+  ["4 Baruch", 9], ["Rest of the Words of Baruch", 9], ["Ethiopic Clement", 8],
 ]);
 
 export const HISTORICAL = mk("hist", [
-  ["Book of Jasher", 91], ["Didache", 16], ["Gospel of Nicodemus", 27], ["1 Maccabees", 16],
-  ["2 Maccabees", 15], ["Shepherd of Hermas", 114], ["Epistle of Barnabas", 21], ["1 Clement", 65],
+  ["Book of Jasher", 91], ["Didache", 16], ["Gospel of Nicodemus", 29], ["1 Maccabees", 16],
+  ["2 Maccabees", 15], ["Tobit", 14], ["Judith", 16], ["Sirach (Ecclesiasticus)", 51], ["Wisdom of Solomon", 19],
 ]);
 
 export const ALL_BOOKS = [...OLD_TESTAMENT, ...NEW_TESTAMENT, ...ETHIOPIAN, ...HISTORICAL];
