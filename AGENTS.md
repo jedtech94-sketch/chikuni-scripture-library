@@ -13,3 +13,4 @@
 - Scripture, cross-refs, commentary and library content live as typed mock data in `src/data/`; search reads only from there (`src/lib/search.ts`), so new content becomes searchable automatically.
 - User state (theme, font size, notes, highlights, bookmarks, audio position) lives in the localStorage store `src/lib/store.ts`; selectors must return existing slices, never new objects (useSyncExternalStore).
 - Audio bar is a simulated narration timeline until real recordings exist.
+- Book registry and remote Scripture text go through `src/data/bibleDatabase.ts` (public-domain translations via bible-api.com, cached per chapter); local study chapters in `bible.ts` override KJV so red letters and commentary survive.
