@@ -4,6 +4,7 @@
  * Local study chapters in `bible.ts` always win over remote text.
  */
 import { ALL_BOOKS, ETHIOPIAN, HISTORICAL, NEW_TESTAMENT, OLD_TESTAMENT, getBook, getChapter, type Book, type Verse } from "@/data/bible";
+import { getCachedChapter, saveCachedChapter } from "@/lib/offlineCache";
 
 export const CANON = { ot: OLD_TESTAMENT, nt: NEW_TESTAMENT, eth: ETHIOPIAN, hist: HISTORICAL } as const;
 export { ALL_BOOKS, getBook };
@@ -30,16 +31,21 @@ export function fetchChapter(book: Book, chapter: number, tr: TranslationId = "k
   if (!cache.has(k)) {
     cache.set(
       k,
-      fetch(`${API}/${encodeURIComponent(`${book.name} ${chapter}`)}?translation=${tr}`)
-        .then(async (r) => {
+      (async () => {
+        const saved = await getCachedChapter<Verse[]>(k);
+        if (saved) return saved;
+        try {
+          const r = await fetch(`${API}/${encodeURIComponent(`${book.name} ${chapter}`)}?translation=${tr}`);
           if (!r.ok) return null;
           const j = (await r.json()) as { verses?: { verse: number; text: string }[] };
-          return j.verses?.length ? j.verses.map((v) => ({ n: v.verse, text: [v.text.replace(/\s+/g, " ").trim()] })) : null;
-        })
-        .catch(() => {
+          const vs = j.verses?.length ? j.verses.map((v) => ({ n: v.verse, text: [v.text.replace(/\s+/g, " ").trim()] })) : null;
+          if (vs) void saveCachedChapter(k, vs);
+          return vs;
+        } catch {
           cache.delete(k);
           return null;
-        }),
+        }
+      })(),
     );
   }
   return cache.get(k)!;
